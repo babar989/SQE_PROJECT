@@ -30,7 +30,7 @@ const mongoose = require('mongoose');
 const app = express();
 app.use(express.json());
 
-const MONGO_URI = process.env.MONGO_URI || 'se ';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/fooddb';
 const PORT = process.env.PORT || 3000;
 
 // ---------------- Schema & Model ----------------
