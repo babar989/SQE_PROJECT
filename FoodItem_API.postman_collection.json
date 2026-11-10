@@ -1,0 +1,486 @@
+{
+  "info": {
+    "name": "Food Item API - CRUD Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "foodId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. CREATE - valid food item",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 201 Created\", () => pm.response.to.have.status(201));",
+              "const j = pm.response.json();",
+              "pm.test(\"Response contains created data + _id\", () => { pm.expect(j._id).to.exist; pm.expect(j.name).to.eql(\"Chicken Biryani\"); });",
+              "pm.collectionVariables.set(\"foodId\", j._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Chicken Biryani\",\n  \"category\": \"Main Course\",\n  \"price\": 350,\n  \"stock\": 40,\n  \"isVegetarian\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "2. READ ALL",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Body is a non-empty JSON array\", () => { const j = pm.response.json(); pm.expect(j).to.be.an('array'); pm.expect(j.length).to.be.above(0); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. READ ALL - filter by category",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Every item is Main Course\", () => pm.response.json().forEach(f => pm.expect(f.category).to.eql(\"Main Course\")));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods?category=Main Course",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods?category=Main Course"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. READ ONE by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Correct record returned\", () => pm.expect(pm.response.json()._id).to.eql(pm.collectionVariables.get(\"foodId\")));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/{{foodId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "{{foodId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. UPDATE - price 350 -> 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Record updated\", () => { const j = pm.response.json(); pm.expect(j.price).to.eql(400); pm.expect(j.stock).to.eql(35); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/{{foodId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "{{foodId}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Chicken Biryani\",\n  \"category\": \"Main Course\",\n  \"price\": 400,\n  \"stock\": 35,\n  \"isVegetarian\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "6. ERROR - missing required fields",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Validation details returned\", () => pm.expect(pm.response.json().details).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Only Name\"\n}"
+        }
+      }
+    },
+    {
+      "name": "7. ERROR - invalid data types",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 400 Bad Request\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"X\",\n  \"category\": \"Pizza\",\n  \"price\": \"free\",\n  \"stock\": -3,\n  \"isVegetarian\": \"yes\"\n}"
+        }
+      }
+    },
+    {
+      "name": "8. ERROR - duplicate name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 409 Conflict\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Chicken Biryani\",\n  \"category\": \"Main Course\",\n  \"price\": 350,\n  \"stock\": 40,\n  \"isVegetarian\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "9. ERROR - GET nonexistent ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 404 Not Found\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/64b7f0f0f0f0f0f0f0f0f0f0",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "64b7f0f0f0f0f0f0f0f0f0f0"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. ERROR - PUT nonexistent ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 404 Not Found\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/64b7f0f0f0f0f0f0f0f0f0f0",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "64b7f0f0f0f0f0f0f0f0f0f0"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Chicken Biryani\",\n  \"category\": \"Main Course\",\n  \"price\": 350,\n  \"stock\": 40,\n  \"isVegetarian\": false\n}"
+        }
+      }
+    },
+    {
+      "name": "11. ERROR - invalid ID format",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 400 Bad Request\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/abc",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "abc"
+          ]
+        }
+      }
+    },
+    {
+      "name": "12. DELETE existing record",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 200 OK\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/{{foodId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "{{foodId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "13. VERIFY - deleted record returns 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status is 404 Not Found\", () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/foods/{{foodId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "foods",
+            "{{foodId}}"
+          ]
+        }
+      }
+    }
+  ]
+}
